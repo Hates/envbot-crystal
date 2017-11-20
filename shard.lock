@@ -1,0 +1,6 @@
+version: 1.0
+shards:
+  slack:
+    github: DougEverly/slack.cr
+    commit: 81a1073bbf3b162acda994c8482eb68fe5ef6dc5
+

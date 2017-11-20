@@ -1,0 +1,17 @@
+name: envbot
+version: 0.1.0
+
+authors:
+  - Richard Hart <richard@ur-ban.com>
+
+targets:
+  envbot:
+    main: src/envbot.cr
+
+dependencies:
+  slack:
+    github: DougEverly/slack.cr
+
+crystal: 0.23.1
+
+license: MIT
