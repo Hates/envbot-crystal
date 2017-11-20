@@ -61,7 +61,7 @@ module EnvBot
             next unless environment
             next unless environment[1]
 
-            taking = event_text =~ /.*(taking|using).*/
+            taking = event_text =~ /.*(take|taking|using).*/
             done = event_text =~ /.*(done|finished).*/
 
             if taking
