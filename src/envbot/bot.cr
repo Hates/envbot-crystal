@@ -37,9 +37,9 @@ module EnvBot
               end
 
               if @envs.size == 1
-                session.send(event.reply(text: "#{@envs.keys.join(",")} is currently in use"))
+                session.send(event.reply(text: "#{@envs.keys.first.upcase} is currently in use"))
               else
-                session.send(event.reply(text: "#{@envs.keys.join(",")} are currently in use"))
+                session.send(event.reply(text: "#{@envs.keys.map { |e| e.upcase }.join(", ")} are currently in use"))
               end
 
               next
@@ -50,7 +50,7 @@ module EnvBot
               if who[1]
                 puts "Checking who for #{who[1]}"
                 if @envs[who[1]]
-                  session.send(event.reply(text: "<@#{@envs[who[1]]}> is using #{who[1]}"))
+                  session.send(event.reply(text: "<@#{@envs[who[1]]}> is using #{who[1].upcase}"))
                 end
               end
 
@@ -61,20 +61,18 @@ module EnvBot
             next unless environment
             next unless environment[1]
 
-            taking = event_text =~ /.*taking.*/
-            done = event_text =~ /.*done.*/
+            taking = event_text =~ /.*(taking|using).*/
+            done = event_text =~ /.*(done|finished).*/
 
             if taking
-              status = "Looks like <@#{event.user}> is taking #{environment[1]}"
+              status = "Looks like #{event.user} is taking #{environment[1]}"
               @envs[environment[1]] = event.user
             elsif done
-              status = "Looks like <@#{event.user}> is done #{environment[1]}"
+              status = "Looks like #{event.user} is done #{environment[1]}"
               @envs.delete(environment[1])
             end
 
             puts status
-            puts @envs
-
           end
         end
       end
