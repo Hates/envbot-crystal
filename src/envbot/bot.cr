@@ -18,7 +18,7 @@ module EnvBot
           if session.me.as?(Slack::User)
             event_text = event.text.downcase
 
-            if event.mentions("envbot help")
+            if event.mentions("help")
               reply = String.build do |reply|
                 reply << "take PO{X} - take a po environment\n"
                 reply << "done PO{X} - release a po environment\n"
