@@ -16,13 +16,46 @@ module EnvBot
             next
           end
           if session.me.as?(Slack::User)
-            if event.mentions("status")
-              reply = event.reply(text: @envs.to_s)
-              session.send(reply)
+            event_text = event.text.downcase
+
+            if event.mentions("envbot help")
+              reply = String.build do |reply|
+                reply << "take PO{X} - take a po environment\n"
+                reply << "done PO{X} - release a po environment\n"
+                reply << "who PO{X} - show who has a PO environment\n"
+                reply << "free - show the current used envs"
+              end
+
+              session.send(event.reply(text: reply))
               next
             end
 
-            event_text = event.text.downcase
+            if event.mentions("free")
+              if @envs.empty?
+                session.send(event.reply("Looks like all environments are free :thinking_face:"))
+                next
+              end
+
+              if @envs.size == 1
+                session.send(event.reply(text: "#{@envs.keys.join(",")} is currently in use"))
+              else
+                session.send(event.reply(text: "#{@envs.keys.join(",")} are currently in use"))
+              end
+
+              next
+            end
+
+            who = event_text.match(/who (po\d*)/)
+            if who
+              if who[1]
+                puts "Checking who for #{who[1]}"
+                if @envs[who[1]]
+                  session.send(event.reply(text: "<@#{@envs[who[1]]}> is using #{who[1]}"))
+                end
+              end
+
+              next
+            end
 
             environment = event_text.match(/.*(po\d*)\s?.*/)
             next unless environment
