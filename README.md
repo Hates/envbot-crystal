@@ -1,18 +1,6 @@
 # envbot
 
-TODO: Write a description here
-
-## Installation
-
-TODO: Write installation instructions here
-
-## Usage
-
-TODO: Write usage instructions here
-
-## Development
-
-TODO: Write development instructions here
+Slackbot to track the usage of PO environments.
 
 ## Contributing
 
