@@ -73,7 +73,7 @@ module EnvBot
               next
             end
 
-            who_match_query = /(who|show).*(#{@envs.keys.join("|")}).*/i
+            who_match_query = /(WHO|SHOW).*(#{@envs.keys.join("|")}).*/i
             puts "Who query regex: #{who_match_query}"
             who = event_text.match(who_match_query)
             puts "Who query env: #{who}"
