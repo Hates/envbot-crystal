@@ -85,7 +85,7 @@ module EnvBot
                   if @envs[who_env]
                     session.send(event.reply(text: "<@#{@envs[who_env]}> is using #{who_env}"))
                   else
-                    session.send(event.reply(text: "Looks like no one is using #{who_env} :woah:"))
+                    session.send(event.reply(text: "Looks like no one is using #{who_env} :tumbleweed:"))
                   end
                 end
               end
