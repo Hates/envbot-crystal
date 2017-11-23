@@ -48,9 +48,7 @@ module EnvBot
             end
 
             who_match_query = /(WHO|SHOW).*(#{@envs.keys.join("|")}).*/i
-            puts "Who query regex: #{who_match_query}"
             who = event_text.match(who_match_query)
-            puts "Who query env: #{who}"
 
             if who && who[2]
               who_env = who[2].upcase
@@ -66,9 +64,7 @@ module EnvBot
             end
 
             env_match_query = /.*(#{@envs.keys.join("|")}).*/i
-            puts "Query regex: #{env_match_query}"
             query_env = event_text.match(env_match_query)
-            puts "Query env: #{query_env}"
 
             next unless query_env
             next unless query_env[1]
@@ -76,15 +72,17 @@ module EnvBot
             taking = event_text =~ /.*(TAKE|TAKING|USING|GRABBING).*/i
             done = event_text =~ /.*(DONE|FINISHED).*/i
 
-            if taking
-              status = "Looks like #{event.user} is taking #{query_env[1].upcase}"
-              @envs[query_env[1].upcase] = event.user
-            elsif done
-              status = "Looks like #{event.user} is done #{query_env[1].upcase}"
-              @envs[query_env[1].upcase] = nil
-            end
+            user = session.users.by_id[event.user]
 
-            puts status
+            if taking
+              status = "`#{user}` now has #{query_env[1].upcase}"
+              @envs[query_env[1].upcase] = event.user
+              session.send(event.reply(text: status))
+            elsif done
+              status = "`#{user}` is done with #{query_env[1].upcase}"
+              @envs[query_env[1].upcase] = nil
+              session.send(event.reply(text: status))
+            end
           end
         end
       end
@@ -99,12 +97,12 @@ module EnvBot
     def help_reply
       String.build do |reply|
         reply << "*envbot instructions :joan:*\n"
-        reply << "take|taking|using|grabbing {X} - take an environment\n"
-        reply << "done|finished {X} - release an environment\n"
-        reply << "who|show {X} - show who has an environment\n"
-        reply << "envs - show the current environments\n"
-        reply << "free - show the current free envs\n"
-        reply << "taken - show the current used envs\n"
+        reply << "`take|taking|using|grabbing {X}` - take an environment\n"
+        reply << "`done|finished {X}` - release an environment\n"
+        reply << "`who|show {X}` - show who has an environment\n"
+        reply << "`envs` - show the current environments\n"
+        reply << "`free` - show the current free envs\n"
+        reply << "`taken` - show the current used envs\n"
       end
     end
 
@@ -117,10 +115,10 @@ module EnvBot
         reply << "*#{title}*\n"
         envs.each do |k,v|
           if envs[k].nil?
-            reply << "#{k}: Free\n"
+            reply << "#{k}: `Free`\n"
           else
             user = session.users.by_id[envs[k]]
-            reply << "#{k}: Taken by #{user}\n"
+            reply << "#{k}: Taken by `#{user}`\n"
           end
         end
       end
