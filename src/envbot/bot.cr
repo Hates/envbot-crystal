@@ -15,61 +15,35 @@ module EnvBot
 
     def run
       @slack.on(Slack::Event::Message) do |session, event|
-        if event = event.as?(Slack::Event::Message) # weird casting here.. can i put it in slack.cr?
+        if event = event.as?(Slack::Event::Message)
           if event.from(session.me)
             # This message is from me, dont reply to me
             next
           end
+
           if session.me.as?(Slack::User)
             event_text = event.text.downcase
 
-            if event.mentions("help")
-              reply = String.build do |reply|
-                reply << "*envbot instructions :joan:*\n"
-                reply << "take|taking|using {X} - take an environment\n"
-                reply << "done|finished {X} - release an environment\n"
-                reply << "who|show {X} - show who has an environment\n"
-                reply << "envs - show the current environments\n"
-                reply << "free - show the current free envs\n"
-                reply << "taken - show the current used envs\n"
-              end
+            if event.mentions("^help$")
+              session.send(event.reply(text: help_reply))
+              next
+            end
 
+            if event.mentions("^envs$")
+              reply = envs_reply(session, "Current Environments", "", @envs)
               session.send(event.reply(text: reply))
               next
             end
 
-            if event.mentions("envs")
-              session.send(event.reply(text: "#{@envs.keys.map { |e| e.upcase }.join(", ")} at your service :thisisfine:"))
+            if event.mentions("^free$")
+              reply = envs_reply(session, "Current Free Environments", "Looks like there are no free environments :aliens:", @envs.reject { |k,v| !v.nil? })
+              session.send(event.reply(text: reply))
               next
             end
 
-            if event.mentions("free")
-              free_environments = @envs.reject { |k,v| !v.nil? }
-              if free_environments.size == @envs.size
-                session.send(event.reply("Looks like all environments are free :fry:"))
-              elsif free_environments.size == 0
-                session.send(event.reply("Looks like all environments are taken :aliens:"))
-              elsif free_environments.size == 1
-                session.send(event.reply(text: "#{free_environments.keys.first.upcase} is free"))
-              else
-                session.send(event.reply(text: "#{free_environments.keys.map { |e| e.upcase }.join(", ")} are free"))
-              end
-
-              next
-            end
-
-            if event.mentions("taken")
-              taken_environments = @envs.reject { |k,v| v.nil? }
-              if taken_environments.size == @envs.size
-                session.send(event.reply("Looks like all environments are taken :aliens:"))
-              elsif taken_environments.size == 0
-                session.send(event.reply("Looks like all environments are free :fry:"))
-              elsif taken_environments.size == 1
-                session.send(event.reply(text: "#{taken_environments.keys.first.upcase} is taken"))
-              else
-                session.send(event.reply(text: "#{taken_environments.keys.map { |e| e.upcase }.join(", ")} are taken"))
-              end
-
+            if event.mentions("^taken$")
+              reply = envs_reply(session, "Current Taken Environments", "Looks like there are no taken environments :aliens:", @envs.reject { |k,v| v.nil? })
+              session.send(event.reply(text: reply))
               next
             end
 
@@ -78,15 +52,13 @@ module EnvBot
             who = event_text.match(who_match_query)
             puts "Who query env: #{who}"
 
-            if who
-              if who[2]
-                who_env = who[2].upcase
-                if @envs.has_key?(who_env)
-                  if @envs[who_env]
-                    session.send(event.reply(text: "<@#{@envs[who_env]}> is using #{who_env}"))
-                  else
-                    session.send(event.reply(text: "Looks like no one is using #{who_env} :tumbleweed:"))
-                  end
+            if who && who[2]
+              who_env = who[2].upcase
+              if @envs.has_key?(who_env)
+                if @envs[who_env]
+                  session.send(event.reply(text: "<@#{@envs[who_env]}> is using #{who_env}"))
+                else
+                  session.send(event.reply(text: "Looks like no one is using #{who_env} :tumbleweed:"))
                 end
               end
 
@@ -101,7 +73,7 @@ module EnvBot
             next unless query_env
             next unless query_env[1]
 
-            taking = event_text =~ /.*(TAKE|TAKING|USING).*/i
+            taking = event_text =~ /.*(TAKE|TAKING|USING|GRABBING).*/i
             done = event_text =~ /.*(DONE|FINISHED).*/i
 
             if taking
@@ -122,6 +94,36 @@ module EnvBot
       }
 
       sleep
+    end
+
+    def help_reply
+      String.build do |reply|
+        reply << "*envbot instructions :joan:*\n"
+        reply << "take|taking|using|grabbing {X} - take an environment\n"
+        reply << "done|finished {X} - release an environment\n"
+        reply << "who|show {X} - show who has an environment\n"
+        reply << "envs - show the current environments\n"
+        reply << "free - show the current free envs\n"
+        reply << "taken - show the current used envs\n"
+      end
+    end
+
+    def envs_reply(session : Slack, title, empty_title, envs)
+      if envs.size == 0
+        return empty_title
+      end
+
+      String.build do |reply|
+        reply << "*#{title}*\n"
+        envs.each do |k,v|
+          if envs[k].nil?
+            reply << "#{k}: Free\n"
+          else
+            user = session.users.by_id[envs[k]]
+            reply << "#{k}: Taken by #{user}\n"
+          end
+        end
+      end
     end
   end
 end
